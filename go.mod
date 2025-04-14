@@ -1,4 +1,4 @@
-module qrpdfstream
+module github.com/Raj63/qrpdfstream
 
 go 1.23.0
 
