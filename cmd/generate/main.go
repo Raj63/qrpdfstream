@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"qrpdfstream/layout"
-	"qrpdfstream/pdf"
 	"time"
+
+	"github.com/Raj63/qrpdfstream/layout"
+	"github.com/Raj63/qrpdfstream/pdf"
 )
 
 func main() {
@@ -65,7 +66,6 @@ func main() {
 		p.Generate(pageIDs)
 
 		fmt.Println("PDF generated ✅")
-
 	})
 }
 

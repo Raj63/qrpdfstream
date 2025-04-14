@@ -7,15 +7,18 @@ import (
 	"io"
 	"log"
 	"os"
-	"qrpdfstream/internal"
-	"qrpdfstream/qrcode"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Raj63/qrpdfstream/internal"
+	"github.com/Raj63/qrpdfstream/qrcode"
 )
 
-const chunkSize = 5 * 1024 * 1024       // 5 MB
-const bufferCapacity = 10 * 1024 * 1024 // 10 MB or whatever you feel is optimal
+const (
+	chunkSize      = 5 * 1024 * 1024  // 5 MB
+	bufferCapacity = 10 * 1024 * 1024 // 10 MB or whatever you feel is optimal
+)
 
 type PDF struct {
 	mu      sync.Mutex
