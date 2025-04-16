@@ -17,15 +17,24 @@ func main() {
 	}
 	defer outFile.Close()
 
-	p := pdf.NewPDF(outFile)
+	layoutResult := layout.CalculateLayout(layout.PageLayoutParams{
+		QRCodeSize: 80,
+		HeaderSize: 0,
+		FooterSize: 50,
+		MarginX:    50,
+		MarginY:    50,
+		Spacing:    20,
+		PageWidth:  595,
+		PageHeight: 842,
+	})
+	p := pdf.NewPDF(outFile, layoutResult)
 	var pageIDs []int
 	// A4 page dimensions in points
-	layout := layout.CalculateLayout(80)
 
 	// Use the calculated values
-	fmt.Printf("QR Code Size: %d\n", layout.QRCodeSize)
-	fmt.Printf("Columns: %d\n", layout.ColumnCount)
-	fmt.Printf("Images per page: %d\n", layout.ImagesPerPage)
+	fmt.Printf("QR Code Size: %d\n", layoutResult.QRCodeSize)
+	fmt.Printf("Columns: %d\n", layoutResult.ColumnCount)
+	fmt.Printf("Images per page: %d\n", layoutResult.ImagesPerPage)
 
 	measureExecution(func() {
 		logoImg, err := pdf.LoadImageFromFile("./../../assets/qrcite.png")
@@ -37,9 +46,9 @@ func main() {
 		headerStr, headerImgID := p.GenerateHeaderFooterContent("QRCite Report", "Smart Labels", logoImg, true)
 		footerStr, footerImgID := p.GenerateHeaderFooterContent("", "Thanks!", nil, false)
 
-		qrcodeSize := layout.QRCodeSize       // 80    // qrcode size
-		columnCount := layout.ColumnCount     // 5    // number of columns possible for above qrcodeSize
-		imagesPerPage := layout.ImagesPerPage // 35               // Number of QR codes per page possible for above qrcodeSize & columnCount
+		qrcodeSize := layoutResult.QRCodeSize       // 80    // qrcode size
+		columnCount := layoutResult.ColumnCount     // 5    // number of columns possible for above qrcodeSize
+		imagesPerPage := layoutResult.ImagesPerPage // 35               // Number of QR codes per page possible for above qrcodeSize & columnCount
 		// now can we make the qrcodeSize dynamic and then calculate the columnCount and imagesPerPage based on it
 
 		totalQRCodes := 100
