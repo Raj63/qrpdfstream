@@ -4,30 +4,46 @@ type PageLayout struct {
 	QRCodeSize    int
 	ColumnCount   int
 	ImagesPerPage int
+	HeaderSize    int
+	FooterSize    int
+	Spacing       int
+	PageWidth     int
+	PageHeight    int
+	MarginX       int
+	MarginY       int
 }
 
-// A4 page dimensions in points
-const (
-	pageWidth  = 595
-	pageHeight = 842
-	marginX    = 50
-	marginY    = 50
-	spacing    = 20
-)
+type PageLayoutParams struct {
+	QRCodeSize int
+	HeaderSize int
+	FooterSize int
+	MarginX    int
+	MarginY    int
+	Spacing    int
+	PageWidth  int
+	PageHeight int
+}
 
 // Calculates column count and images per page based on QR code size
-func CalculateLayout(qrcodeSize int) PageLayout {
-	usableWidth := pageWidth - 2*marginX
-	usableHeight := pageHeight - 2*marginY
+func CalculateLayout(params PageLayoutParams) PageLayout {
+	usableWidth := params.PageWidth - 2*params.MarginX
+	usableHeight := params.PageHeight - 2*params.MarginY - (params.HeaderSize + params.FooterSize)
 
-	columnCount := usableWidth/(qrcodeSize+spacing) + 1
-	rows := usableHeight / (qrcodeSize + spacing)
+	columnCount := usableWidth / (params.QRCodeSize + params.Spacing)
+	rows := usableHeight / (params.QRCodeSize + params.Spacing)
 
 	imagesPerPage := columnCount * rows
 
 	return PageLayout{
-		QRCodeSize:    qrcodeSize,
+		QRCodeSize:    params.QRCodeSize,
 		ColumnCount:   columnCount,
 		ImagesPerPage: imagesPerPage,
+		HeaderSize:    params.HeaderSize,
+		FooterSize:    params.FooterSize,
+		MarginX:       params.MarginX,
+		MarginY:       params.MarginY,
+		Spacing:       params.Spacing,
+		PageWidth:     params.PageWidth,
+		PageHeight:    params.PageHeight,
 	}
 }

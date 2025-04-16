@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Raj63/qrpdfstream/internal"
+	"github.com/Raj63/qrpdfstream/layout"
 	"github.com/Raj63/qrpdfstream/qrcode"
 )
 
@@ -26,9 +27,10 @@ type PDF struct {
 	buffer  *bytes.Buffer
 	xref    []int
 	objects int
+	layout  layout.PageLayout
 }
 
-func NewPDF(w io.Writer) *PDF {
+func NewPDF(w io.Writer, layout layout.PageLayout) *PDF {
 	// Preallocate buffer with fixed capacity to reuse memory
 	buf := bytes.NewBuffer(make([]byte, 0, bufferCapacity))
 
@@ -37,6 +39,7 @@ func NewPDF(w io.Writer) *PDF {
 		buffer:  buf,
 		xref:    []int{0},
 		objects: 1,
+		layout:  layout,
 	}
 	// start of pdf declaration
 	pdf.buffer.WriteString("%PDF-1.7\n%\xFF\xFF\xFF\xFF\n")
@@ -111,16 +114,16 @@ func (pdf *PDF) AddPageWithImages(imageIDs []int, imgSize, columnCount int, prep
 	var sb strings.Builder
 	sb.WriteString(prependContent)
 
-	x, y := 50, 650
+	x, y := pdf.layout.MarginX, pdf.layout.PageHeight-pdf.layout.MarginY-pdf.layout.HeaderSize-imgSize
 	col := 0
 
 	for _, objID := range imageIDs {
 		sb.WriteString(fmt.Sprintf("q %d 0 0 %d %d %d cm /Im%d Do Q\n", imgSize, imgSize, x, y, objID))
-		x += imgSize + 20
+		x += imgSize + pdf.layout.Spacing
 		col++
 		if col == columnCount {
-			col, x = 0, 50
-			y -= imgSize + 20
+			col, x = 0, pdf.layout.MarginX
+			y -= imgSize + pdf.layout.Spacing
 		}
 	}
 
@@ -137,9 +140,9 @@ func (pdf *PDF) AddPageWithImages(imageIDs []int, imgSize, columnCount int, prep
 	resourceObjID := pdf.writeObject(fmt.Sprintf("%d 0 obj\n%s\nendobj\n", pdf.objects+1, res))
 
 	return pdf.writeObject(fmt.Sprintf(
-		"%d 0 obj\n<< /Type /Page /Parent 1 0 R /MediaBox [0 0 595 842] "+
+		"%d 0 obj\n<< /Type /Page /Parent 1 0 R /MediaBox [0 0 %d %d] "+
 			"/Contents %d 0 R /Resources %d 0 R >>\nendobj\n",
-		pdf.objects+1, contentObjID, resourceObjID))
+		pdf.objects+1, pdf.layout.PageWidth, pdf.layout.PageHeight, contentObjID, resourceObjID))
 }
 
 // Flush the accumulated buffer to the writer
@@ -201,19 +204,18 @@ func (pdf *PDF) GenerateHeaderFooterContent(title, subtitle string, logo image.I
 	const (
 		logoWidth     = 50
 		logoHeight    = 50
-		logoX         = 50
 		titleFontSize = 16
 		subFontSize   = 10
 		infoFontSize  = 8
 		titleX        = 120
 		infoX         = 400
-		topY          = 780
-		bottomY       = 50
+		// topY          = 780
+		// bottomY       = 50
 	)
 
-	y := topY
+	y := pdf.layout.PageHeight - pdf.layout.MarginY
 	if !isHeader {
-		y = bottomY
+		y = pdf.layout.MarginY
 	}
 
 	var content strings.Builder
@@ -226,7 +228,7 @@ func (pdf *PDF) GenerateHeaderFooterContent(title, subtitle string, logo image.I
 		logoY := y - 20
 		content.WriteString(fmt.Sprintf(
 			"q %d 0 0 %d %d %d cm /Im%d Do Q\n",
-			logoWidth, logoHeight, logoX, logoY, imageID,
+			logoWidth, logoHeight, pdf.layout.MarginX, logoY, imageID,
 		))
 	}
 
