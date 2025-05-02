@@ -19,7 +19,7 @@ func main() {
 
 	layoutResult := layout.CalculateLayout(layout.PageLayoutParams{
 		QRCodeSize: 80,
-		HeaderSize: 0,
+		HeaderSize: 50,
 		FooterSize: 50,
 		MarginX:    50,
 		MarginY:    50,
